@@ -91,10 +91,9 @@ public class E3FrameworkClient extends Thread {
         /**
          * 确保连接上Service之后再执行后续操作
          */
-        while(!isBind);
+        while (!isBind) ;
 
-        ICallback.Stub mCallback = new ICallback.Stub()
-        {
+        ICallback.Stub mCallback = new ICallback.Stub() {
 
             /**
              * Demonstrates some basic types that you can use as parameters
@@ -116,22 +115,19 @@ public class E3FrameworkClient extends Thread {
             public void showResult(int result) throws RemoteException {
                 Log.e(TAG, "showResult is called.");
             }
+
             @Override
-            public void CallbackString(String s)
-            {
-                Log.e(TAG,s);
+            public void CallbackString(String s) {
+                Log.e(TAG, "Not Successfully download string");
+
             }
 
-            public void CallbackObject(IByteArray b)
-            {
-                if(b.getByte()==null)
-                {
-                    Log.e(TAG,"b.getByte()==null");
+            public void CallbackObject(IByteArray b) {
+                if (b.getByte() == null) {
+                    Log.e(TAG, "b.getByte()==null");
+                } else {
+                    Log.e(TAG, "received byte, size= " + b.getByte().length);
                 }
-                else
-                {
-                Log.e(TAG,"received byte, size= "+b.getByte().length);
-            }
             }
 
         };
@@ -142,7 +138,7 @@ public class E3FrameworkClient extends Thread {
 //            e.printStackTrace();
 //        }
 
-      //  while(true)
+        //  while(true)
         {
             try {
                 Request request = mQueue.take();
@@ -153,11 +149,9 @@ public class E3FrameworkClient extends Thread {
                 e3remote.putObjectRequest(request.url, request.delay, request.tag, mCallback);
 
 
-
-
             } catch (InterruptedException e) {
                 e.printStackTrace();
-              //  continue;
+                //  continue;
             } catch (RemoteException e) {
                 e.printStackTrace();
             }
@@ -213,11 +207,12 @@ public class E3FrameworkClient extends Thread {
         String c_url = sr.url;
         int c_delay = sr.delay;
         String c_tag = sr.tag;
-        //mQueue.add(sr);
+
+        mQueue.add(sr);
 
 //        while(!isBind);
 
-       // Log.d(TAG, "call putStringRequest after service is connected.");
+        // Log.d(TAG, "call putStringRequest after service is connected.");
     }
 
     public void putObjectRequest(ObjectRequest or, ResponseListener rl, ProgressListener pl) {

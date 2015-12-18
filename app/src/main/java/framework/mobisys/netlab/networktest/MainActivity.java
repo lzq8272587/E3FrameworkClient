@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity
         E3FrameworkClient e3client=E3FrameworkClient.getInstant(this);
 
         e3client.putStringRequest(new StringRequest("http://52.88.216.252/json_test.txt",0,"StringTest"),null);
-        e3client.putObjectRequest(new ObjectRequest("http://52.88.216.252/boat.jpg",0,"ObjectTest"),null,null);
+//        e3client.putObjectRequest(new ObjectRequest("http://52.88.216.252/boat.jpg",0,"ObjectTest"),null,null);
 
         //Log.d(TAG,"Service connected.");
 
