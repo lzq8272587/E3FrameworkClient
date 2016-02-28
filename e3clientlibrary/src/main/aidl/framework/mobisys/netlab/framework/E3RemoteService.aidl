@@ -14,21 +14,21 @@ interface E3RemoteService {
     void basicTypes(int anInt, long aLong, boolean aBoolean, float aFloat,
             double aDouble, String aString);
 
-            void putStringRequest(String url, int delay, String tag,ICallback callback);
+                        void putERequest(String url, int delay, String tag, ICallback callback);
 
-            void putObjectRequest(String url, int delay, String tag,ICallback callback);
+                        void putStringRequest(String url, int delay, String tag, ICallback callback);
 
-            String performStringRequest();
+                        void putObjectRequest(String url, int delay, String tag, ICallback callback);
 
-            byte[] performObjectRequest();
+                        String performStringRequest();
+
+                        byte[] performObjectRequest();
 
 void deleteRequest(String tag);
 
 
                  void registerCallback(ICallback cb);
                  void unregisterCallback(ICallback cb);
-
-
 //     E3Framework getFrameworkInstance();
 //     LStringRequest createStringRequest(String url, int delay, String tag);
 //     LObjectRequest createObjectRequest(String url, int delay, String tag);
@@ -37,4 +37,5 @@ void deleteRequest(String tag);
 //     void putStringRequest(LStringRequest lsr, Response.Listener rl);
 //     void putObjectRequest(LObjectRequest lor, Response.Listener rl, Response.ProgressListener pl);
 //     void deleteRequest(String tag);
+
 }

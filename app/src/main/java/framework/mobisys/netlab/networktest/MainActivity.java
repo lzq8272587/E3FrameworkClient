@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
@@ -22,10 +23,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
+
+import com.android.volley.ERequest;
+import com.android.volley.Response;
 
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
+import framework.mobisys.netlab.framework.ByteRequest;
 import framework.mobisys.netlab.framework.E3FrameworkClient;
+import framework.mobisys.netlab.framework.ICallback;
 import framework.mobisys.netlab.framework.ObjectRequest;
 import framework.mobisys.netlab.framework.StringRequest;
 import framework.mobisys.netlab.framework.E3RemoteService;
@@ -36,6 +45,7 @@ public class MainActivity extends AppCompatActivity
     String TAG="MainActivity";
 
     E3RemoteService e3remote;
+    private String callbackString;
 
     boolean isBind=false;
     private ServiceConnection mConnection=new ServiceConnection() {
@@ -105,15 +115,29 @@ public class MainActivity extends AppCompatActivity
 //        }
 
 
+        final TextView textView = (TextView) findViewById(R.id.textView);
 
         E3FrameworkClient e3client=E3FrameworkClient.getInstant(this);
+        String url = "http://52.88.216.252/json_test.txt";
 
-        e3client.putStringRequest(new StringRequest("http://52.88.216.252/json_test.txt",0,"StringTest"),null);
+        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
+            @Override
+            public void onResponse(byte[] response) {
+                callbackString = new String(response);
+                Log.e("onResponse", callbackString);
+            }
+        });
+
+
+
+
 //        e3client.putObjectRequest(new ObjectRequest("http://52.88.216.252/boat.jpg",0,"ObjectTest"),null,null);
 
         //Log.d(TAG,"Service connected.");
 
 
+
+        //void putERequest(String url, String TAG, ICallback callback);
     }
 
     @Override

@@ -10,10 +10,17 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.util.Log;
+import android.view.View;
+
+import com.android.volley.ERequest;
+import com.android.volley.Response;
+import com.android.volley.toolbox.Volley;
 
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
+import java.util.zip.Inflater;
 
+import framework.mobisys.netlab.e3clientlibrary.R;
 import framework.mobisys.netlab.framework.E3RemoteService;
 import framework.mobisys.netlab.framework.ICallback;
 
@@ -23,9 +30,9 @@ import framework.mobisys.netlab.framework.ICallback;
 public class E3FrameworkClient extends Thread {
 
 
-    private PriorityBlockingQueue<Request> mQueue = new PriorityBlockingQueue<Request>();
+    private PriorityBlockingQueue<ERequest> mQueue = new PriorityBlockingQueue<ERequest>();
     String TAG = "E3FrameworkClient";
-
+    private Response.Listener<byte[]> responseListener;
     /**
      * 用于启动Service的Context
      */
@@ -36,7 +43,6 @@ public class E3FrameworkClient extends Thread {
      */
     private Handler handler = new Handler();
 
-
     /**
      * 让整个Framework在用户看来只有一个实例
      */
@@ -44,6 +50,7 @@ public class E3FrameworkClient extends Thread {
 
 
     E3RemoteService e3remote;
+    public byte[] CallbackByteArray = new byte[1024*1024];
 
     /**
      * 判断是否绑定成功的boolean变量
@@ -118,8 +125,7 @@ public class E3FrameworkClient extends Thread {
 
             @Override
             public void CallbackString(String s) {
-                Log.e(TAG, "Not Successfully download string");
-
+                Log.e(TAG, "Show Downloaded String:\n"+ s);
             }
 
             public void CallbackObject(IByteArray b) {
@@ -130,6 +136,12 @@ public class E3FrameworkClient extends Thread {
                 }
             }
 
+            public void CallbackByte(byte[] result) throws RemoteException{
+                CallbackByteArray = result;
+                Log.e(TAG, "callback byte:\n" + new String(CallbackByteArray));
+                responseListener.onResponse(result);
+            }
+
         };
 
 //        try {
@@ -138,22 +150,24 @@ public class E3FrameworkClient extends Thread {
 //            e.printStackTrace();
 //        }
 
-        //  while(true)
+        while(true)
         {
             try {
-                Request request = mQueue.take();
+                ERequest request = mQueue.take();
 
                 Log.d(TAG, "call remote service after checking binding state: " + isBind);
 
                 //if(request.instanceof(StringRequest))
-                e3remote.putObjectRequest(request.url, request.delay, request.tag, mCallback);
+                e3remote.putERequest(request.url, request.delay, request.tag, mCallback);
+//                mCallback.CallbackString(callbackContent);
+//                Log.e(TAG, "Callback result is "+ e3remote.getPid());
 
 
-            } catch (InterruptedException e) {
+
+
+            } catch (Exception e) {
                 e.printStackTrace();
                 //  continue;
-            } catch (RemoteException e) {
-                e.printStackTrace();
             }
 
 
@@ -203,20 +217,23 @@ public class E3FrameworkClient extends Thread {
         return null;
     }
 
-    public void putStringRequest(StringRequest sr, ResponseListener rl) {
+    public void putStringRequest(StringRequest sr, Response.Listener<byte[]> rl) {
         String c_url = sr.url;
         int c_delay = sr.delay;
         String c_tag = sr.tag;
 
-        mQueue.add(sr);
+//        mQueue.add(sr);
 
-//        while(!isBind);
-
-        // Log.d(TAG, "call putStringRequest after service is connected.");
     }
 
     public void putObjectRequest(ObjectRequest or, ResponseListener rl, ProgressListener pl) {
-        mQueue.add(or);
+//        mQueue.add(or);
+    }
+
+    public void putByteRequest(ByteRequest er, Response.Listener<byte[]> rl){
+        responseListener=rl;
+        er.setListener(rl);
+        mQueue.add(er);
     }
 
     public void deleteRequest(String tag) {
