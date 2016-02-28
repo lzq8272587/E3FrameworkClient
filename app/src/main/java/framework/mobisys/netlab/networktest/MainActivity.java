@@ -128,16 +128,6 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-
-
-
-//        e3client.putObjectRequest(new ObjectRequest("http://52.88.216.252/boat.jpg",0,"ObjectTest"),null,null);
-
-        //Log.d(TAG,"Service connected.");
-
-
-
-        //void putERequest(String url, String TAG, ICallback callback);
     }
 
     @Override
