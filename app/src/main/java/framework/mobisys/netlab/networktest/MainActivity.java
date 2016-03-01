@@ -49,9 +49,9 @@ public class MainActivity extends AppCompatActivity
     String TAG="MainActivity";
     E3FrameworkClient e3client;
     E3RemoteService e3remote;
-    private String callbackString;
-    private TextView textView;
-    private ImageView imageView;
+    private String callbackString,callbackstring2;
+    private TextView textView,textView2;
+    private ImageView imageView1;
     private Bitmap callbackBitmap;
     boolean isBind=false;
     private ServiceConnection mConnection=new ServiceConnection() {
@@ -121,24 +121,27 @@ public class MainActivity extends AppCompatActivity
 //        }
 
         textView = (TextView) findViewById(R.id.textView);
-        imageView = (ImageView) findViewById(R.id.imageView);
+        textView2 = (TextView) findViewById(R.id.textView2);
+        imageView1 = (ImageView) findViewById(R.id.imageView1);
         e3client=E3FrameworkClient.getInstant(this);
-        String url = "http://52.88.216.252/json_test.txt";
+        String url;
+
 
         /**
          * 向framework请求文字下载
          */
-//        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
-//            @Override
-//            public void onResponse(byte[] response) {
-//                Message msg = new Message();
-//                callbackString = new String(response);
-//                msg.what = 0;
-//                msg.obj = callbackString;
-//                Log.e("onResponse", callbackString);
-//                mHandler.sendMessage(msg);
-//            }
-//        });
+        url = "http://121.42.158.232/json_test.txt";
+        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
+            @Override
+            public void onResponse(byte[] response) {
+                Message msg = new Message();
+                callbackString = new String(response);
+                msg.what = 0;
+                msg.obj = callbackString;
+                Log.e("onResponse", callbackString);
+                mHandler.sendMessage(msg);
+            }
+        });
 
         /**
          * 向framework请求图片下载
@@ -151,10 +154,12 @@ public class MainActivity extends AppCompatActivity
                 callbackBitmap = BitmapFactory.decodeByteArray(response, 0, response.length);
                 msg.what = 1;
                 msg.obj = callbackBitmap;
-                Log.e("onResponse","Bitmap is called back:"+response);
                 mHandler.sendMessage(msg);
             }
         });
+
+
+
     }
 
     private Handler mHandler = new Handler(){
@@ -165,7 +170,7 @@ public class MainActivity extends AppCompatActivity
                     textView.setText(msg.obj.toString());
                     break;
                 case 1:
-                    imageView.setImageBitmap((Bitmap) msg.obj);
+                    imageView1.setImageBitmap((Bitmap) msg.obj);
                     break;
 
             }

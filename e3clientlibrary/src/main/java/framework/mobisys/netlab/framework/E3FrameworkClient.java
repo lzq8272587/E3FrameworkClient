@@ -16,7 +16,10 @@ import com.android.volley.ERequest;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 
+import java.io.PushbackReader;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.zip.Inflater;
 
@@ -32,7 +35,6 @@ public class E3FrameworkClient extends Thread {
 
     private PriorityBlockingQueue<ERequest> mQueue = new PriorityBlockingQueue<ERequest>();
     String TAG = "E3FrameworkClient";
-    private Response.Listener<byte[]> responseListener;
     /**
      * 用于启动Service的Context
      */
@@ -50,14 +52,12 @@ public class E3FrameworkClient extends Thread {
 
 
     E3RemoteService e3remote;
-    public byte[] CallbackByteArray = new byte[1024*1024];
 
     /**
      * 判断是否绑定成功的boolean变量
      */
     public boolean isBind = false;
 
-    //IByteArray iba=new IByteArray();
 
     /**
      * bind到Service的连接类
@@ -136,38 +136,22 @@ public class E3FrameworkClient extends Thread {
                 }
             }
 
-            public void CallbackByte(byte[] result) throws RemoteException{
-                CallbackByteArray = result;
-                Log.e(TAG, "callback byte:\n" + new String(CallbackByteArray));
-                responseListener.onResponse(result);
+            public void CallbackByte(byte[] result, String url) throws RemoteException{
+                Log.e(TAG, url);
+                listenerMap.get(url).onResponse(result);
             }
 
         };
-
-//        try {
-//            e3remote.registerCallback(mCallback);
-//        } catch (RemoteException e) {
-//            e.printStackTrace();
-//        }
 
         while(true)
         {
             try {
                 ERequest request = mQueue.take();
-
                 Log.d(TAG, "call remote service after checking binding state: " + isBind);
-
-                //if(request.instanceof(StringRequest))
                 e3remote.putERequest(request.url, request.delay, request.tag, mCallback);
-//                mCallback.CallbackString(callbackContent);
-//                Log.e(TAG, "Callback result is "+ e3remote.getPid());
-
-
-
 
             } catch (Exception e) {
                 e.printStackTrace();
-                //  continue;
             }
 
 
@@ -230,8 +214,10 @@ public class E3FrameworkClient extends Thread {
 //        mQueue.add(or);
     }
 
+    private Map<String, Response.Listener<byte[]>> listenerMap = new HashMap<String, Response.Listener<byte[]>>();
+
     public void putByteRequest(ByteRequest er, Response.Listener<byte[]> rl){
-        responseListener=rl;
+        listenerMap.put(er.byteRequestUrl,rl);
         er.setListener(rl);
         mQueue.add(er);
     }
