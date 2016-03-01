@@ -6,9 +6,14 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 import android.os.RemoteException;
+import android.os.StrictMode;
 import android.os.SystemClock;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -22,10 +27,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.android.volley.ERequest;
+import com.android.volley.Response;
 
 import java.util.List;
+import java.util.logging.LogRecord;
 
+import framework.mobisys.netlab.framework.ByteRequest;
 import framework.mobisys.netlab.framework.E3FrameworkClient;
+import framework.mobisys.netlab.framework.ICallback;
 import framework.mobisys.netlab.framework.ObjectRequest;
 import framework.mobisys.netlab.framework.StringRequest;
 import framework.mobisys.netlab.framework.E3RemoteService;
@@ -34,9 +47,12 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     String TAG="MainActivity";
-
+    E3FrameworkClient e3client;
     E3RemoteService e3remote;
-
+    private String callbackString,callbackstring2;
+    private TextView textView,textView2;
+    private ImageView imageView1;
+    private Bitmap callbackBitmap;
     boolean isBind=false;
     private ServiceConnection mConnection=new ServiceConnection() {
         // Called when the connection with the service is established
@@ -104,17 +120,63 @@ public class MainActivity extends AppCompatActivity
 //            e.printStackTrace();
 //        }
 
+        textView = (TextView) findViewById(R.id.textView);
+        textView2 = (TextView) findViewById(R.id.textView2);
+        imageView1 = (ImageView) findViewById(R.id.imageView1);
+        e3client=E3FrameworkClient.getInstant(this);
+        String url;
 
 
-        E3FrameworkClient e3client=E3FrameworkClient.getInstant(this);
+        /**
+         * 向framework请求文字下载
+         */
+        url = "http://121.42.158.232/json_test.txt";
+        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
+            @Override
+            public void onResponse(byte[] response) {
+                Message msg = new Message();
+                callbackString = new String(response);
+                msg.what = 0;
+                msg.obj = callbackString;
+                Log.e("onResponse", callbackString);
+                mHandler.sendMessage(msg);
+            }
+        });
 
-        e3client.putStringRequest(new StringRequest("http://52.88.216.252/json_test.txt",0,"StringTest"),null);
-        e3client.putObjectRequest(new ObjectRequest("http://52.88.216.252/boat.jpg",0,"ObjectTest"),null,null);
+        /**
+         * 向framework请求图片下载
+         */
+        url = "http://121.42.158.232/wolf.jpg";
+        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Image Request"), new Response.Listener<byte[]>() {
+            @Override
+            public void onResponse(byte[] response) {
+                Message msg = new Message();
+                callbackBitmap = BitmapFactory.decodeByteArray(response, 0, response.length);
+                msg.what = 1;
+                msg.obj = callbackBitmap;
+                mHandler.sendMessage(msg);
+            }
+        });
 
-        //Log.d(TAG,"Service connected.");
 
 
     }
+
+    private Handler mHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg){
+            switch (msg.what){
+                case 0:
+                    textView.setText(msg.obj.toString());
+                    break;
+                case 1:
+                    imageView1.setImageBitmap((Bitmap) msg.obj);
+                    break;
+
+            }
+        }
+
+    };
 
     @Override
     public void onBackPressed() {

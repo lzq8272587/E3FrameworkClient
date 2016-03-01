@@ -1,1 +1,1 @@
-include ':app', ':e3clientlibrary'
+include ':app', ':e3clientlibrary', ':volley'
