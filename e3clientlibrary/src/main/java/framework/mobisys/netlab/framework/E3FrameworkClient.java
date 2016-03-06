@@ -16,6 +16,8 @@ import com.android.volley.ERequest;
 import com.android.volley.Response;
 import com.android.volley.toolbox.Volley;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.PushbackReader;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +36,24 @@ public class E3FrameworkClient extends Thread {
 
 
     private PriorityBlockingQueue<ERequest> mQueue = new PriorityBlockingQueue<ERequest>();
+    /**
+     * listenerMap stands for the map relation between url and its response listener
+     */
+    private Map<String, Response.Listener<byte[]>> listenerMap = new HashMap<String, Response.Listener<byte[]>>();
+    /**
+     * EResponseMap: url --> EResponse
+     * Every url requires an output stream buffer to store corresponding data.
+     * Here we use a Map rather than a single variable, taking this situation into consideration:
+     * multiple requests receive their callback data simultaneously.
+     */
+    private Map<String, ByteArrayOutputStream> ByteResponseMap = new HashMap<String, ByteArrayOutputStream>();
+    /**
+     * ERequestMap:  url --> ERequest
+     */
+    private Map<String, ByteRequest> ByteRequestMap = new HashMap<String, ByteRequest>();
+    /**
+     * TAG of client.
+     */
     String TAG = "E3FrameworkClient";
     /**
      * 用于启动Service的Context
@@ -57,6 +77,11 @@ public class E3FrameworkClient extends Thread {
      * 判断是否绑定成功的boolean变量
      */
     public boolean isBind = false;
+
+    /**
+     * The content length of every request(B).
+     */
+    final long CONTENT_LENGTH_PER_REQUEST = 1000*1024;
 
 
     /**
@@ -93,6 +118,7 @@ public class E3FrameworkClient extends Thread {
         intent.setAction("framework.mobisys.netlab.framework.E3Service");
         final Intent eintent = new Intent(createExplicitFromImplicitIntent(context, intent));
         context.bindService(eintent, mConnection, Context.BIND_AUTO_CREATE);
+
 
 
         /**
@@ -137,8 +163,23 @@ public class E3FrameworkClient extends Thread {
             }
 
             public void CallbackByte(byte[] result, String url) throws RemoteException{
-                Log.e(TAG, url);
-                listenerMap.get(url).onResponse(result);
+                /**
+                 * result == null means the entire data of this url is downloaded completely,
+                 * so the corresponding listener can be called.
+                 */
+
+                try {
+                    ByteResponseMap.get(url).write(result);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                if(result.length <= CONTENT_LENGTH_PER_REQUEST ) {
+                    listenerMap.get(url).onResponse(ByteResponseMap.get(url).toByteArray());
+                }
+                else {
+                    _putByteRequest(ByteRequestMap.get(url), listenerMap.get(url), Long.parseLong(ByteRequestMap.get(url).sProperty.split("-")[1]));
+                }
             }
 
         };
@@ -148,7 +189,7 @@ public class E3FrameworkClient extends Thread {
             try {
                 ERequest request = mQueue.take();
                 Log.d(TAG, "call remote service after checking binding state: " + isBind);
-                e3remote.putERequest(request.url, request.delay, request.tag, mCallback);
+                e3remote.putERequest(request.url, request.delay, request.tag, request.sProperty, mCallback);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -214,11 +255,19 @@ public class E3FrameworkClient extends Thread {
 //        mQueue.add(or);
     }
 
-    private Map<String, Response.Listener<byte[]>> listenerMap = new HashMap<String, Response.Listener<byte[]>>();
 
-    public void putByteRequest(ByteRequest er, Response.Listener<byte[]> rl){
-        listenerMap.put(er.byteRequestUrl,rl);
+    public void putByteRequest(ByteRequest er, final Response.Listener<byte[]> rl){
+        String url = er.byteRequestUrl;
+        Log.d(TAG,url);
+        listenerMap.put(url, rl);
+        ByteRequestMap.put(url, er);
+        ByteResponseMap.put(url, new ByteArrayOutputStream());
+        _putByteRequest(er, rl, 0);
+    }
+
+    public void _putByteRequest(ByteRequest er, final Response.Listener<byte[]> rl, long nStartPos){
         er.setListener(rl);
+        er.sProperty = "bytes=" + nStartPos + "-" + (nStartPos + CONTENT_LENGTH_PER_REQUEST);
         mQueue.add(er);
     }
 
