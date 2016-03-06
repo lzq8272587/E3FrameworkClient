@@ -33,6 +33,7 @@ import android.widget.TextView;
 import com.android.volley.ERequest;
 import com.android.volley.Response;
 
+import java.util.Date;
 import java.util.List;
 import java.util.logging.LogRecord;
 
@@ -49,34 +50,11 @@ public class MainActivity extends AppCompatActivity
     String TAG="MainActivity";
     E3FrameworkClient e3client;
     E3RemoteService e3remote;
-    private String callbackString,callbackstring2;
-    private TextView textView,textView2;
+    private String callbackString;
+    private TextView textView;
     private ImageView imageView1;
     private Bitmap callbackBitmap;
     boolean isBind=false;
-    private ServiceConnection mConnection=new ServiceConnection() {
-        // Called when the connection with the service is established
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            // Following the example above for an AIDL interface,
-            // this gets an instance of the IRemoteInterface, which we can use to call on the service
-            Log.d(TAG,"connect to remote service.");
-            e3remote=E3RemoteService.Stub.asInterface(service);
-            isBind=true;
-            try {
-                Log.d(TAG,"call getID: "+e3remote.getPid());
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            // Called when the connection with the service disconnects unexpectedly
-            Log.e(TAG, "Service has unexpectedly disconnected");
-            e3remote=null;
-        }
-    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +99,6 @@ public class MainActivity extends AppCompatActivity
 //        }
 
         textView = (TextView) findViewById(R.id.textView);
-        textView2 = (TextView) findViewById(R.id.textView2);
         imageView1 = (ImageView) findViewById(R.id.imageView1);
         e3client=E3FrameworkClient.getInstant(this);
         String url;
@@ -130,23 +107,24 @@ public class MainActivity extends AppCompatActivity
         /**
          * 向framework请求文字下载
          */
-        url = "http://121.42.158.232/json_test.txt";
-        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
-            @Override
-            public void onResponse(byte[] response) {
-                Message msg = new Message();
-                callbackString = new String(response);
-                msg.what = 0;
-                msg.obj = callbackString;
-                Log.e("onResponse", callbackString);
-                mHandler.sendMessage(msg);
-            }
-        });
+//        url = "http://121.42.158.232/json_test.txt";
+//        e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Text Request"), new Response.Listener<byte[]>() {
+//            @Override
+//            public void onResponse(byte[] response) {
+//
+//                Message msg = new Message();
+//                callbackString = new String(response);
+//                msg.what = 0;
+//                msg.obj = callbackString;
+//                mHandler.sendMessage(msg);
+//            }
+//        });
 
         /**
          * 向framework请求图片下载
          */
-        url = "http://121.42.158.232/wolf.jpg";
+        url = "http://121.42.158.232/Book.jpg";
+
         e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Image Request"), new Response.Listener<byte[]>() {
             @Override
             public void onResponse(byte[] response) {
