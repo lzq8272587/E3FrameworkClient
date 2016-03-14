@@ -55,6 +55,8 @@ public class MainActivity extends AppCompatActivity
     private ImageView imageView1;
     private Bitmap callbackBitmap;
     boolean isBind=false;
+    long t1,t2;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -123,16 +125,19 @@ public class MainActivity extends AppCompatActivity
         /**
          * 向framework请求图片下载
          */
-        url = "http://121.42.158.232/Book.jpg";
+        url = "http://121.42.158.232/mountain.jpg";
 
+        t1 = System.currentTimeMillis();
         e3client.putByteRequest(new ByteRequest(url, ERequest.ACTIVE, "New Image Request"), new Response.Listener<byte[]>() {
             @Override
             public void onResponse(byte[] response) {
+                t2 = System.currentTimeMillis();
                 Message msg = new Message();
                 callbackBitmap = BitmapFactory.decodeByteArray(response, 0, response.length);
                 msg.what = 1;
                 msg.obj = callbackBitmap;
                 mHandler.sendMessage(msg);
+                Log.e("time","cost time: "+ (t2-t1));
             }
         });
 
