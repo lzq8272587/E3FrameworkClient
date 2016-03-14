@@ -265,16 +265,11 @@ public class E3FrameworkClient extends Thread {
         _putByteRequest(er, rl, 0);
     }
 
-    public void _putByteRequest(ByteRequest er, final Response.Listener<byte[]> rl, long nStartPos){
+    private void _putByteRequest(ByteRequest er, final Response.Listener<byte[]> rl, long nStartPos){
         er.setListener(rl);
         er.sProperty = "bytes=" + nStartPos + "-" + (nStartPos + CONTENT_LENGTH_PER_REQUEST);
         mQueue.add(er);
     }
-
-    public void deleteRequest(String tag) {
-
-    }
-
 
     /**
      * 回调接口
